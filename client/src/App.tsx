@@ -5,9 +5,9 @@ import './App.css';
 function App() {
   const [influencerData, setInfluencerData] = useState<Influencer[]>([]);
   const [allCategories, setAllCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [filteredCategory, setFilteredCategory] = useState<Influencer[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState<string>('');
+  const [filteredCountry, setFilteredCountry] = useState<Influencer[]>([]);
 
   //====== Fetch and set influencerData
   useEffect(() => {
@@ -18,8 +18,7 @@ function App() {
     };
     fetchAndSetData();
   }, []);
-
-  //====== CATEGORIES - Runs once influencerData has been set
+  //====== Set state of all categories
   useEffect(() => {
     // Get categories from "category_1" and "category_2" fields
     const allCategoriesSet = new Set(
@@ -32,8 +31,7 @@ function App() {
     // Set categories state
     setAllCategories(allCategoriesArray);
   }, [influencerData]);
-
-  //====== COUNTRIES - Runs once influencerData has been set
+  //====== Set state of all countries
   useEffect(() => {
     // Get countries from "Audience country(mostly)" field
     const countriesSet = new Set(
@@ -44,15 +42,29 @@ function App() {
     // Set countries state
     setCountries(countriesArray);
   }, [influencerData]);
-
-  //====== Functions to set state of category and country on selection
-  function selectCategory(e: React.ChangeEvent<HTMLSelectElement>) {
+  //====== Set state of influencers filtered by category
+  function filterByCategory(e: React.ChangeEvent<HTMLSelectElement>) {
     const category = e.target.value;
-    setSelectedCategory(category);
+    const influencersByCategory = influencerData.filter(
+      (influencer) =>
+        influencer.category_1 === category || influencer.category_2 === category
+    );
+    setFilteredCategory(influencersByCategory);
   }
-  function selectCountry(e: React.ChangeEvent<HTMLSelectElement>) {
+  //====== Set state of influencers filtered by country
+  function filterByCountry(e: React.ChangeEvent<HTMLSelectElement>) {
     const country = e.target.value;
-    setSelectedCountry(country);
+    const influencersByCountry = influencerData.filter(
+      (influencer) => influencer['Audience country(mostly)'] === country
+    );
+    setFilteredCountry(influencersByCountry);
+  }
+  //====== Parse numbers from influencer data
+  function parseNumbers(str: string) {
+    if (str.slice(-1) === 'K') {
+      return parseFloat(str) * 1000;
+    } else str.slice(-1) === 'M';
+    return parseFloat(str) * 1000000;
   }
 
   return (
@@ -65,7 +77,7 @@ function App() {
             data-testid="categories"
             name="categories"
             id="categories"
-            onChange={selectCategory}
+            onChange={filterByCategory}
             // className="select select-primary w-full"
           >
             {allCategories.map((category) => {
@@ -84,7 +96,7 @@ function App() {
             data-testid="countries"
             name="countries"
             id="countries"
-            onChange={selectCountry}
+            onChange={filterByCountry}
             // className="select select-primary w-full"
           >
             {countries.map((country) => {
